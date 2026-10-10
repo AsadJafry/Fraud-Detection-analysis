@@ -1,0 +1,33 @@
+# Data (never commit the dataset or derived data)
+data/*
+!data/.gitkeep
+*.csv
+*.parquet
+*.zip
+
+# Virtual environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Models / artifacts
+models/
+*.joblib
+*.pkl
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/secrets.toml
