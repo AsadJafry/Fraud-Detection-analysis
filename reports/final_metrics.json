@@ -1,0 +1,93 @@
+{
+  "cost_assumptions": {
+    "cost_fn": 500,
+    "cost_fp": 5
+  },
+  "thresholds_chosen_on_validation": {
+    "XGBoost (pre-transaction)": 0.394,
+    "Logistic regression (pre-transaction)": 0.347,
+    "Logistic regression (full, notebook 02 baseline)": 0.574
+  },
+  "test": {
+    "rows": 37971,
+    "frauds": 1244,
+    "base_rate": 0.03276184456558953,
+    "metrics_at_chosen_threshold": {
+      "XGBoost (pre-transaction)": {
+        "pr_auc": 0.9999244735985463,
+        "roc_auc": 0.9999972312439651,
+        "threshold": 0.394,
+        "precision": 1.0,
+        "recall": 0.9991961414790996,
+        "f1": 0.9995979091274628,
+        "tp": 1243,
+        "fp": 0,
+        "fn": 1,
+        "tn": 36727,
+        "confusion_matrix": [
+          [
+            36727,
+            0
+          ],
+          [
+            1,
+            1243
+          ]
+        ],
+        "n": 37971,
+        "n_fraud": 1244,
+        "base_rate": 0.03276184456558953
+      },
+      "Logistic regression (pre-transaction)": {
+        "pr_auc": 0.5236229590089843,
+        "roc_auc": 0.9507745819353486,
+        "threshold": 0.347,
+        "precision": 0.12044310171198389,
+        "recall": 0.9614147909967846,
+        "f1": 0.21406837300877035,
+        "tp": 1196,
+        "fp": 8734,
+        "fn": 48,
+        "tn": 27993,
+        "confusion_matrix": [
+          [
+            27993,
+            8734
+          ],
+          [
+            48,
+            1196
+          ]
+        ],
+        "n": 37971,
+        "n_fraud": 1244,
+        "base_rate": 0.03276184456558953
+      },
+      "Logistic regression (full, notebook 02 baseline)": {
+        "pr_auc": 0.905080958739557,
+        "roc_auc": 0.9835350067505119,
+        "threshold": 0.574,
+        "precision": 0.36703431372549017,
+        "recall": 0.9630225080385852,
+        "f1": 0.5314995563442768,
+        "tp": 1198,
+        "fp": 2066,
+        "fn": 46,
+        "tn": 34661,
+        "confusion_matrix": [
+          [
+            34661,
+            2066
+          ],
+          [
+            46,
+            1198
+          ]
+        ],
+        "n": 37971,
+        "n_fraud": 1244,
+        "base_rate": 0.03276184456558953
+      }
+    }
+  }
+}

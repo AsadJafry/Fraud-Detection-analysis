@@ -19,7 +19,10 @@ follows an almost deterministic rule**: the fraudster always transfers the
   post-transaction bookkeeping artefacts down to the rule that generates the fraud.
 - **Imbalance strategies:** class weights, SMOTE and undersampling compared
   under identical settings, with a time-safe hyperparameter search.
-- Cost-based decision thresholds and SHAP explanations: *in progress*.
+- **Cost-based decision thresholds:** the alert threshold is chosen on
+  validation by minimising assumed costs (missed fraud 500, false alarm 5), with
+  a sensitivity analysis over cost ratios from 10:1 to 500:1.
+- SHAP explanations: *in progress*.
 
 ## Results (validation set)
 
@@ -41,6 +44,32 @@ Validation is also used for early stopping and model selection, so these scores
 are slightly optimistic.
 
 ![Precision-recall curves](reports/figures/pr_curve_xgb_vs_baseline.png)
+
+## Final test results (test set used once)
+
+Test covers steps 633 to 743: 37,971 transactions, 1,244 frauds, base rate
+3.28%. Models and thresholds were frozen on validation before this evaluation.
+Costs assume 500 per missed fraud and 5 per false alarm.
+
+| Model | Threshold | Precision | Recall | False alarms | Missed | Total cost |
+|---|---|---|---|---|---|---|
+| **XGBoost (pre-transaction)** | 0.394 (cost-optimal) | 100% | 99.92% | 0 | 1 | **500** |
+| XGBoost (pre-transaction) | 0.5 | 100% | 99.60% | 0 | 5 | 2,500 |
+| One-line rule | – | 100% | 99.28% | 0 | 9 | 4,500 |
+| Logistic regression (full) | 0.574 (cost-optimal) | 36.7% | 96.3% | 2,066 | 46 | 33,330 |
+| Logistic regression (pre-transaction) | 0.347 (cost-optimal) | 12.0% | 96.1% | 8,734 | 48 | 67,670 |
+| Flag nothing | – | – | 0% | 0 | 1,244 | 622,000 |
+
+Test PR-AUC: XGBoost 0.9999, one-line rule 0.993, logistic regression 0.905
+(full) and 0.524 (pre-transaction). Full table: `reports/final_results.csv`.
+
+**These scores are too good to be realistic**, for the reasons above: PaySim
+fraud follows a simple rule, and the test period's fraud rate is 15 times the
+training rate. What carries over to real work is the method: thresholds set from
+costs on validation, a single test evaluation, and the observation that a
+threshold tuned at one fraud rate needs re-tuning when the rate shifts (the
+full-feature logistic regression did slightly better on test at 0.5 than at its
+validation-optimal threshold).
 
 ## How the near-perfect score was investigated
 
@@ -100,9 +129,9 @@ all of it, so these scores say nothing about what a bank could expect.
 
 ```
 data/              raw data (not committed)
-notebooks/         01_eda, 02_baseline, 03_xgboost (call code in src/)
-src/               data loading, features, models, training, evaluation, plots
-reports/           metrics (JSON) and figures/
+notebooks/         01_eda, 02_baseline, 03_xgboost, 04_threshold (call code in src/)
+src/               data loading, features, models, training, evaluation, thresholds, plots
+reports/           metrics (JSON), final_results.csv and figures/
 models/            saved models (not committed)
 tests/             pytest tests
 ```
@@ -126,5 +155,5 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
 ## Status
 
 Done: EDA, time-based split and features, baselines, XGBoost with imbalance
-strategies, leakage investigation. Next: cost-based threshold selection, SHAP
-explanations, and a single final evaluation on the untouched test set.
+strategies, leakage investigation, cost-based thresholds and the final test
+evaluation. Next: SHAP explanations.
