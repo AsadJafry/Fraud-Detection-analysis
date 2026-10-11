@@ -23,6 +23,10 @@ from src.plotting import FIGURE_DIR, save_fig
 
 # Fixed colour per model so the same model looks the same in every figure.
 MODEL_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+# Different line styles and widths keep overlapping curves visible
+# (e.g. several near-perfect models drawn on top of each other).
+LINE_STYLES = ["-", "--", ":", "-.", "-"]
+LINE_WIDTHS = [4.0, 2.5, 2.5, 2.0, 2.0]
 
 
 def evaluate_model(y_true, y_score, threshold: float = 0.5) -> dict:
@@ -83,19 +87,21 @@ def plot_pr_curve(results: dict, title: str = "Precision-recall curve (validatio
     name : str
         File name (without .png) under reports/figures/.
 
-    The dashed line is the base rate of the first dataset, which is the
-    PR-AUC a random model would get.
+    The grey dashed line is the base rate of the first dataset, which is the
+    PR-AUC a random model would get. Curves use different line styles so
+    that models with identical curves remain distinguishable.
     """
     fig, ax = plt.subplots(figsize=(7, 5.5))
     base_rate = None
-    for (label, (y_true, y_score)), color in zip(results.items(), MODEL_COLORS):
+    styles = zip(MODEL_COLORS, LINE_STYLES, LINE_WIDTHS)
+    for (label, (y_true, y_score)), (color, style, width) in zip(results.items(), styles):
         precision, recall, _ = precision_recall_curve(y_true, y_score)
         ap = average_precision_score(y_true, y_score)
-        ax.step(recall, precision, where="post", color=color, linewidth=2,
-                label=f"{label} (PR-AUC {ap:.3f})")
+        ax.step(recall, precision, where="post", color=color, linestyle=style,
+                linewidth=width, label=f"{label} (PR-AUC {ap:.3f})")
         if base_rate is None:
             base_rate = float(np.mean(y_true))
-    ax.axhline(base_rate, color="0.4", linestyle="--", linewidth=1,
+    ax.axhline(base_rate, color="0.4", linestyle=(0, (2, 2)), linewidth=1,
                label=f"Random model (base rate {base_rate:.2%})")
     ax.set_xlim(0, 1.0)
     ax.set_ylim(0, 1.02)
