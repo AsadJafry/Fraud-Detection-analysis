@@ -193,3 +193,34 @@ def test_build_features_reuses_precomputed_behavior(history):
     rel = full[full["step"] >= 3]  # history from step 1 must survive the slice
     X = build_features(rel, include_behavior=True)
     assert X.loc[4, "prev_txn_count"] == 3
+
+
+# ---------------------------------------------------------------- pre-transaction feature set
+
+def test_pre_transaction_features_ignore_post_transaction_balances(tiny):
+    """Changing the balances recorded AFTER the payment must not change any feature."""
+    from src.features import PRE_TRANSACTION_FEATURES
+
+    rel = filter_relevant(tiny, verbose=False)
+    before = build_features(rel, feature_set="pre_transaction")
+    assert list(before.columns) == PRE_TRANSACTION_FEATURES
+
+    changed = rel.assign(newbalanceOrig=rel["newbalanceOrig"] + 12345.0,
+                         newbalanceDest=rel["newbalanceDest"] * 7 + 1)
+    after = build_features(changed, feature_set="pre_transaction")
+    pd.testing.assert_frame_equal(before, after)
+
+
+def test_pre_transaction_feature_values(tiny):
+    rel = filter_relevant(tiny, verbose=False)
+    X = build_features(rel, feature_set="pre_transaction")
+    assert X.loc[0, "oldbalanceOrg_log"] == pytest.approx(np.log1p(100.0))
+    assert X.loc[1, "oldbalanceDest_log"] == pytest.approx(np.log1p(500.0))
+    assert X.loc[2, "oldbalanceOrg_log"] == 0.0
+    assert not set(FORBIDDEN_COLUMNS) & set(X.columns)
+
+
+def test_unknown_feature_set_rejected(tiny):
+    rel = filter_relevant(tiny, verbose=False)
+    with pytest.raises(ValueError, match="feature_set"):
+        build_features(rel, feature_set="everything")

@@ -1,0 +1,58 @@
+{
+  "headline_model": "pre_transaction",
+  "full": {
+    "strategy": "undersample",
+    "hyperparameters": {
+      "max_depth": 8,
+      "learning_rate": 0.06149394156285053,
+      "min_child_weight": 2.2557275712679017,
+      "subsample": 0.8270801311279966,
+      "colsample_bytree": 0.831261142176991,
+      "n_estimators": 137
+    },
+    "fixed_settings": {
+      "tree_method": "hist",
+      "eval_metric": "aucpr",
+      "early_stopping_rounds": 50,
+      "seed": 42,
+      "resample_ratio": 0.1
+    },
+    "features": [
+      "amount_log",
+      "errorBalanceOrig",
+      "errorBalanceDest",
+      "orig_emptied",
+      "dest_new_or_zero",
+      "hour",
+      "amount_to_balance_ratio",
+      "is_transfer"
+    ]
+  },
+  "pre_transaction": {
+    "strategy": "smote",
+    "hyperparameters": {
+      "max_depth": 5,
+      "learning_rate": 0.2678154091306088,
+      "min_child_weight": 21.118915966823938,
+      "subsample": 0.8387400631785948,
+      "colsample_bytree": 0.6872700594236812,
+      "n_estimators": 3
+    },
+    "fixed_settings": {
+      "tree_method": "hist",
+      "eval_metric": "aucpr",
+      "early_stopping_rounds": 50,
+      "seed": 42,
+      "resample_ratio": 0.1
+    },
+    "features": [
+      "amount_log",
+      "oldbalanceOrg_log",
+      "oldbalanceDest_log",
+      "amount_to_balance_ratio",
+      "dest_new_or_zero",
+      "hour",
+      "is_transfer"
+    ]
+  }
+}

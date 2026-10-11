@@ -10,3 +10,4 @@ pyarrow
 streamlit
 jupyter
 pytest
+imbalanced-learn

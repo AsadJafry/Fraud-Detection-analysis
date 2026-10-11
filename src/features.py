@@ -28,6 +28,18 @@ BASE_FEATURES = [
     "amount_to_balance_ratio",
     "is_transfer",
 ]
+# Only information known before the payment is processed: no column here
+# uses newbalanceOrig or newbalanceDest.
+PRE_TRANSACTION_FEATURES = [
+    "amount_log",
+    "oldbalanceOrg_log",
+    "oldbalanceDest_log",
+    "amount_to_balance_ratio",
+    "dest_new_or_zero",
+    "hour",
+    "is_transfer",
+]
+FEATURE_SETS = {"full": BASE_FEATURES, "pre_transaction": PRE_TRANSACTION_FEATURES}
 BEHAVIOR_FEATURES = ["prev_txn_count", "prev_mean_amount"]
 
 
@@ -152,8 +164,22 @@ def add_behavior_features(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def build_features(df: pd.DataFrame, include_behavior: bool = False) -> pd.DataFrame:
+def build_features(df: pd.DataFrame, include_behavior: bool = False,
+                   feature_set: str = "full") -> pd.DataFrame:
     """Return the model-ready feature matrix for TRANSFER / CASH_OUT rows.
+
+    ``feature_set`` chooses the columns:
+
+    - ``"full"``: the features listed below, including the balance errors,
+      which use balances recorded *after* the transaction.
+    - ``"pre_transaction"``: only information available before the payment
+      is processed: ``amount_log``, ``oldbalanceOrg_log``,
+      ``oldbalanceDest_log`` (log1p of the opening balances),
+      ``amount_to_balance_ratio``, ``dest_new_or_zero``, ``hour`` and
+      ``is_transfer``. In PaySim the post-transaction balances encode how
+      the simulator books fraud (fraud origin balances add up exactly; fraud
+      destinations are often never credited), which makes the "full" set
+      close to perfect but unrealistic. This set is the realistic one.
 
     The output keeps ``df``'s index so it lines up with ``df["isFraud"]``.
     Money values are converted to float64 before arithmetic so balance errors
@@ -178,6 +204,8 @@ def build_features(df: pd.DataFrame, include_behavior: bool = False) -> pd.DataF
     ``isFlaggedFraud``, ``nameOrig``, ``nameDest``, ``step`` and the label
     are never included.
     """
+    if feature_set not in FEATURE_SETS:
+        raise ValueError(f"Unknown feature_set {feature_set!r}; choose from {list(FEATURE_SETS)}.")
     other_types = set(df["type"].astype(str).unique()) - set(RELEVANT_TYPES)
     if other_types:
         raise ValueError(f"Run filter_relevant first; found types {sorted(other_types)}.")
@@ -197,6 +225,9 @@ def build_features(df: pd.DataFrame, include_behavior: bool = False) -> pd.DataF
     X["hour"] = (df["step"] % 24).astype("int8")
     X["amount_to_balance_ratio"] = amount / (old_orig + 1)
     X["is_transfer"] = (df["type"].astype(str) == "TRANSFER").astype("int8")
+    X["oldbalanceOrg_log"] = np.log1p(old_orig)
+    X["oldbalanceDest_log"] = np.log1p(old_dest)
+    X = X[FEATURE_SETS[feature_set]].copy()
 
     if include_behavior:
         if not set(BEHAVIOR_FEATURES).issubset(df.columns):
