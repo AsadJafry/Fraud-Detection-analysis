@@ -19,10 +19,11 @@ __pycache__/
 # Jupyter
 .ipynb_checkpoints/
 
-# Models / artifacts
-models/
+# Models / artifacts (the small headline model is committed for the demo app)
+models/*
 *.joblib
 *.pkl
+!models/xgb_pre_transaction.joblib
 
 # OS / editor
 .DS_Store

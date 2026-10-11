@@ -164,8 +164,12 @@ def describe_feature(feature: str, row: pd.Series, shap_value: float) -> str:
 
 
 @lru_cache(maxsize=1)
-def _default_model_and_threshold():
-    """Load the saved headline model and its validation-chosen threshold."""
+def load_headline_model():
+    """Load the saved headline model and its validation-chosen threshold.
+
+    Returns ``(model, threshold)``: models/xgb_pre_transaction.joblib and the
+    cost-optimal threshold stored in reports/final_metrics.json.
+    """
     from src.train import load_model
 
     model = load_model(HEADLINE_MODEL)
@@ -195,7 +199,7 @@ def explain_transaction(row, model=None, threshold: float = None, top_n: int = 3
         ``label``, ``shap`` and ``text``) and a one-line ``summary``.
     """
     if model is None or threshold is None:
-        default_model, default_threshold = _default_model_and_threshold()
+        default_model, default_threshold = load_headline_model()
         model = model if model is not None else default_model
         threshold = threshold if threshold is not None else default_threshold
 

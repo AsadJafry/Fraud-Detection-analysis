@@ -160,8 +160,9 @@ data/              raw data (not committed)
 notebooks/         01_eda, 02_baseline, 03_xgboost, 04_threshold, 05_explainability
 src/               data loading, features, models, training, evaluation, thresholds,
                    SHAP explanations, plots
+app.py             Streamlit demo app
 reports/           metrics (JSON), final_results.csv and figures/
-models/            saved models (not committed)
+models/            saved models (only the demo model is committed)
 tests/             pytest tests
 ```
 
@@ -181,9 +182,39 @@ python -m pytest -q
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
 ```
 
+## Demo app
+
+A small Streamlit app scores one transaction with the saved pre-transaction
+XGBoost model, shows FLAG / ALLOW at the cost-optimal threshold (0.394), and
+explains the decision with the top three reasons and a SHAP waterfall. Two
+presets load a typical legitimate cash-out and an account-takeover pattern (the
+full balance transferred to an empty account).
+
+```bash
+streamlit run app.py
+```
+
+It needs only `models/xgb_pre_transaction.joblib` and
+`reports/final_metrics.json`, both committed; the dataset is not needed. The app
+reuses `src.features.build_features` and `src.explain.explain_transaction`, so
+it computes exactly the same features as training. A headless smoke test lives
+in `tests/test_app.py`.
+
+**Deploying to Streamlit Community Cloud**
+
+- Point the app at this repository, branch `master`, main file `app.py`, and pick
+  **Python 3.12** under advanced settings (the version the model was saved with).
+- The model file (~120 KB) is committed on purpose: `.gitignore` excludes
+  `models/*` except this one file. Retraining on the cloud is not an option
+  because it needs the 493 MB dataset, which cannot go in the repository. To
+  refresh the model, re-run notebook 03 locally and commit the new file.
+- `xgboost` and `scikit-learn` are pinned in `requirements.txt` because a pickled
+  model should be loaded with the library versions that saved it.
+- `requirements.txt` also lists the notebook tools (Jupyter, imbalanced-learn),
+  which make the first cloud build slower but do no harm.
+
 ## Status
 
 Done: EDA, time-based split and features, baselines, XGBoost with imbalance
 strategies, leakage investigation, cost-based thresholds and the final test
-evaluation, SHAP explanations. Next: a small Streamlit demo built on
-`explain_transaction()`.
+evaluation, SHAP explanations. A Streamlit demo app is included.
