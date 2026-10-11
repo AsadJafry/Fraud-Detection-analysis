@@ -1,0 +1,130 @@
+{
+  "split": {
+    "train_steps": [
+      1,
+      520
+    ],
+    "val_steps": [
+      521,
+      632
+    ],
+    "train_rows": 2653729,
+    "val_rows": 78709,
+    "test_rows_not_used": 37971
+  },
+  "features": [
+    "amount_log",
+    "errorBalanceOrig",
+    "errorBalanceDest",
+    "orig_emptied",
+    "dest_new_or_zero",
+    "hour",
+    "amount_to_balance_ratio",
+    "is_transfer"
+  ],
+  "threshold": 0.5,
+  "validation": {
+    "never_fraud": {
+      "pr_auc": 0.015093572526648795,
+      "roc_auc": 0.5,
+      "threshold": 0.5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1188,
+      "tn": 77521,
+      "confusion_matrix": [
+        [
+          77521,
+          0
+        ],
+        [
+          1188,
+          0
+        ]
+      ],
+      "n": 78709,
+      "n_fraud": 1188,
+      "base_rate": 0.015093572526648795
+    },
+    "legacy_rule": {
+      "pr_auc": 0.017580709969763318,
+      "roc_auc": 0.5012626262626263,
+      "threshold": 0.5,
+      "precision": 1.0,
+      "recall": 0.0025252525252525255,
+      "f1": 0.005037783375314861,
+      "tp": 3,
+      "fp": 0,
+      "fn": 1185,
+      "tn": 77521,
+      "confusion_matrix": [
+        [
+          77521,
+          0
+        ],
+        [
+          1185,
+          3
+        ]
+      ],
+      "n": 78709,
+      "n_fraud": 1188,
+      "base_rate": 0.015093572526648795
+    },
+    "logistic_regression": {
+      "pr_auc": 0.8785796353356039,
+      "roc_auc": 0.9905402845767394,
+      "threshold": 0.5,
+      "precision": 0.17944384698110308,
+      "recall": 0.9831649831649831,
+      "f1": 0.3034948681304404,
+      "tp": 1168,
+      "fp": 5341,
+      "fn": 20,
+      "tn": 72180,
+      "confusion_matrix": [
+        [
+          72180,
+          5341
+        ],
+        [
+          20,
+          1168
+        ]
+      ],
+      "n": 78709,
+      "n_fraud": 1188,
+      "base_rate": 0.015093572526648795
+    }
+  },
+  "train": {
+    "logistic_regression": {
+      "pr_auc": 0.7296988587628022,
+      "roc_auc": 0.9906777537221436,
+      "threshold": 0.5,
+      "precision": 0.03426914139054565,
+      "recall": 0.9769935997232313,
+      "f1": 0.06621569340070577,
+      "tp": 5648,
+      "fp": 159165,
+      "fn": 133,
+      "tn": 2488783,
+      "confusion_matrix": [
+        [
+          2488783,
+          159165
+        ],
+        [
+          133,
+          5648
+        ]
+      ],
+      "n": 2653729,
+      "n_fraud": 5781,
+      "base_rate": 0.0021784439933391843
+    }
+  }
+}
