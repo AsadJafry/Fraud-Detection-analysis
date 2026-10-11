@@ -42,17 +42,19 @@ def _string_dtype() -> str:
         return "object"
 
 
-def get_dtypes() -> dict:
+def get_dtypes(money_dtype: str = "float32") -> dict:
     """Return the memory-efficient dtype for every PaySim column.
 
     - ``step`` fits in int16 (max 743).
-    - Money columns use float32. This halves memory but keeps only ~7
+    - Money columns default to float32. This halves memory but keeps only ~7
       significant digits, so very large balances lose sub-unit precision.
+      Pass ``money_dtype="float64"`` for modelling, where exact balance
+      arithmetic (e.g. balance-error features) matters.
     - ``type`` is a category with the five known transaction types.
     - Account IDs use pyarrow strings when pyarrow is installed (much smaller
       than Python objects).
     """
-    dtypes = {col: "float32" for col in MONEY_COLUMNS}
+    dtypes = {col: money_dtype for col in MONEY_COLUMNS}
     dtypes.update(
         {
             "step": "int16",
@@ -88,7 +90,7 @@ def validate_data(df: pd.DataFrame) -> None:
         raise ValueError("Column step must be >= 1.")
 
 
-def load_data(path=DEFAULT_DATA_PATH, nrows=None) -> pd.DataFrame:
+def load_data(path=DEFAULT_DATA_PATH, nrows=None, money_dtype: str = "float32") -> pd.DataFrame:
     """Load the PaySim CSV with compact dtypes and validate it.
 
     Parameters
@@ -97,6 +99,9 @@ def load_data(path=DEFAULT_DATA_PATH, nrows=None) -> pd.DataFrame:
         Path to the PaySim CSV. Defaults to ``data/paysim.csv``.
     nrows : int, optional
         Read only the first ``nrows`` rows (handy for quick tests).
+    money_dtype : str
+        dtype for amount and balance columns: "float32" (default, compact)
+        or "float64" (exact enough for balance arithmetic).
 
     Returns
     -------
@@ -112,7 +117,7 @@ def load_data(path=DEFAULT_DATA_PATH, nrows=None) -> pd.DataFrame:
 
     # Read `type` as plain strings first so unknown values can be reported
     # clearly, then convert it to the fixed categorical dtype.
-    dtypes = get_dtypes()
+    dtypes = get_dtypes(money_dtype)
     type_dtype = dtypes.pop("type")
     df = pd.read_csv(path, dtype={**dtypes, "type": "str"}, nrows=nrows)
 
