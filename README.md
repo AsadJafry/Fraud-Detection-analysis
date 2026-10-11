@@ -22,7 +22,9 @@ follows an almost deterministic rule**: the fraudster always transfers the
 - **Cost-based decision thresholds:** the alert threshold is chosen on
   validation by minimising assumed costs (missed fraud 500, false alarm 5), with
   a sensitivity analysis over cost ratios from 10:1 to 500:1.
-- SHAP explanations: *in progress*.
+- **Explainability:** SHAP (TreeExplainer) global and per-transaction
+  explanations, plus `explain_transaction()`, which turns a score into three
+  plain-English reasons for an analyst.
 
 ## Results (validation set)
 
@@ -95,6 +97,32 @@ for machine learning to learn. Real fraud is not this clean: legitimate
 customers sometimes move their whole balance and fraudsters do not always take
 all of it, so these scores say nothing about what a bank could expect.
 
+## What the model learned (SHAP)
+
+![SHAP summary](reports/figures/shap_beeswarm.png)
+
+- **One feature dominates:** amount relative to the origin balance has about 7
+  times the impact of the next feature. Transfers of the *entire* balance push
+  the score up most, which is the one-line rule seen from inside the model.
+- **Secondary signals make sense for PaySim:** a destination with a zero prior
+  balance, early-morning hours (a simulator artefact) and transfers of exactly
+  10M (the chunks used to drain large balances) all raise the score.
+- **The one missed test fraud** moved 399,045 out of a 10,399,045 balance: the
+  leftover after a 10M chunk. The model scores each transaction on its own, so a
+  feature tracking recent outflows from the same account would be the next
+  improvement.
+
+Example output of `explain_transaction()` for a flagged transfer:
+
+```
+Flagged for review (score 0.783, threshold 0.394).
+  - The amount is exactly 10,000,000, the largest single transfer, which raises the fraud score.
+  - The transfer is a 10,000,000 chunk of a 33,171,086 balance (large balances are
+    drained in 10M chunks), which raises the fraud score.
+  - The destination account had a zero prior balance (new or empty account), which
+    raises the fraud score.
+```
+
 ## Key findings from the EDA
 
 - **Severe imbalance:** 8,213 frauds in 6.36M transactions (0.129%).
@@ -129,8 +157,9 @@ all of it, so these scores say nothing about what a bank could expect.
 
 ```
 data/              raw data (not committed)
-notebooks/         01_eda, 02_baseline, 03_xgboost, 04_threshold (call code in src/)
-src/               data loading, features, models, training, evaluation, thresholds, plots
+notebooks/         01_eda, 02_baseline, 03_xgboost, 04_threshold, 05_explainability
+src/               data loading, features, models, training, evaluation, thresholds,
+                   SHAP explanations, plots
 reports/           metrics (JSON), final_results.csv and figures/
 models/            saved models (not committed)
 tests/             pytest tests
@@ -156,4 +185,5 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
 
 Done: EDA, time-based split and features, baselines, XGBoost with imbalance
 strategies, leakage investigation, cost-based thresholds and the final test
-evaluation. Next: SHAP explanations.
+evaluation, SHAP explanations. Next: a small Streamlit demo built on
+`explain_transaction()`.
